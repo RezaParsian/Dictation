@@ -1,0 +1,14 @@
+@import "bootstrap";
+
+.svg-icon {
+    width: 2rem;
+    height: 2rem;
+}
+
+.pointer{
+    cursor: pointer;
+}
+
+.ucfirst{
+    text-transform: capitalize;
+}
