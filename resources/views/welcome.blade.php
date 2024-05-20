@@ -50,9 +50,27 @@
                         <input type="number" class="form-control" id="repeat" x-model.number="repeat" min="1">
                     </div>
 
-                    <div class="form-group mx-2">
+                    <div class="form-group mx-0 mx-md-2">
                         <label for="repeat">Delay <small>(s)</small>:</label>
                         <input type="number" class="form-control" id="repeat" x-model.number="delay" min="1" step="0.1">
+                    </div>
+
+                    <div class="m-auto">
+                        <div>
+                            <label>
+                                British
+                                <input type="radio" name="language" x-model="language" value="bre">
+                            </label>
+
+                            <label class="mx-0 mx-md-2">
+                                American
+                                <input type="radio" name="language" x-model="language" value="ame">
+                            </label>
+                        </div>
+
+                        <div class="text-center">
+                            <button class="btn btn-outline-success mx-auto" @click="playAll">Play All</button>
+                        </div>
                     </div>
                 </div>
 
@@ -100,7 +118,8 @@
         delay: 1,
         wordCount: 0,
         words: '',
-        vocabularies:@json(@$vocabularies),
+        language: 'ame',
+        vocabularies:@json(@$vocabularies ?? []),
         init() {
             this.$watch('words', (val) => {
                 const words = val.trim().split('\n');
@@ -108,18 +127,35 @@
                 this.words = words.map(x => x.trim()).join('\n');
             })
         },
-        play(url, count = 0) {
-            audio.src = url;
+        async asyncPlay(url) {
+            return new Promise((resolve, reject) => {
+                audio.src = url;
 
-            audio.play();
+                audio.play();
 
-            audio.onended =  async () => {
+                audio.onerror = () => {
+                    reject();
+                };
+
+                audio.onended = async () => {
+                    resolve();
+                };
+            });
+        },
+        async play(url, count = 0) {
+            await this.asyncPlay(url).then(async () => {
                 count++;
                 await new Promise(resolve => setTimeout(resolve, this.delay * 1000));
 
-                if(count<this.repeat)
-                    this.play(url, count);
-            };
+                if (count < this.repeat)
+                    await this.play(url, count);
+            }).catch(() => {
+            });
+        },
+        async playAll() {
+            for (let item of this.vocabularies)
+                await this.play(item[this.language]).catch(() => {
+                })
         }
     });
 </script>
