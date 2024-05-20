@@ -44,6 +44,18 @@
                     <h3 x-text="'Found '+vocabularies.length +' words' "></h3>
                 </div>
 
+                <div class="row mx-auto col-12 border-bottom mb-2">
+                    <div class="form-group">
+                        <label for="repeat">Repeat:</label>
+                        <input type="number" class="form-control" id="repeat" x-model.number="repeat" min="1">
+                    </div>
+
+                    <div class="form-group mx-2">
+                        <label for="repeat">Delay <small>(s)</small>:</label>
+                        <input type="number" class="form-control" id="repeat" x-model.number="delay" min="1" step="0.1">
+                    </div>
+                </div>
+
                 <template x-for="vocabulary in vocabularies">
                     <div class="col-md-4 m-0 p-0">
                         <div class="border m-1">
@@ -84,6 +96,8 @@
     });
 
     const alpine = () => ({
+        repeat: 1,
+        delay: 1,
         wordCount: 0,
         words: '',
         vocabularies:@json(@$vocabularies),
@@ -94,10 +108,18 @@
                 this.words = words.map(x => x.trim()).join('\n');
             })
         },
-        play(url) {
-            console.log(url)
+        play(url, count = 0) {
             audio.src = url;
+
             audio.play();
+
+            audio.onended =  async () => {
+                count++;
+                await new Promise(resolve => setTimeout(resolve, this.delay * 1000));
+
+                if(count<this.repeat)
+                    this.play(url, count);
+            };
         }
     });
 </script>
